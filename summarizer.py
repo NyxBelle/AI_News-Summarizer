@@ -5,7 +5,7 @@ from textwrap import shorten
 # Create OpenAI client
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+MODEL = os.getenv("OPENAI_MODEL", "gpt-3.5-turbo")
 
 SYSTEM_PROMPT = """You are a helpful summarization assistant.
 Given an article title and content (or description),
