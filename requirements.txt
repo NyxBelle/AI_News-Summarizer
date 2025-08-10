@@ -8,3 +8,4 @@ alembic
 gTTS
 python-dotenv
 Werkzeug
+groq
