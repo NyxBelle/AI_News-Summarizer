@@ -15,13 +15,16 @@ def summarize_article(title, content, max_tokens=300):
         {"role": "user", "content": f"Title: {title}\n\nContent: {content}\n\nReturn: 1) A one-line headline summary, 2) 4-8 bullet points. Use plain text."}
     ]
     try:
-        resp = openai.ChatCompletion.create(
-            model=MODEL,
-            messages=prompt,
-            temperature=0.2,
-            max_tokens=max_tokens,
-        )
-        text = resp.choices[0].message.content.strip()
+        from openai import OpenAI
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+resp = client.chat.completions.create(
+    model=MODEL,
+    messages=prompt,
+    temperature=0.2,
+    max_tokens=max_tokens,
+)
+text = resp.choices[0].message.content.strip()
         # naive parsing: first line headline, rest bullets
         parts = [line.strip() for line in text.splitlines() if line.strip()]
         headline = parts[0] if parts else (shorten(title, width=80))
