@@ -9,3 +9,4 @@ gTTS
 python-dotenv
 Werkzeug
 groq
+requests
