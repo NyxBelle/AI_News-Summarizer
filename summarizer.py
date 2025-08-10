@@ -7,20 +7,25 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 MODEL = os.getenv("OPENAI_MODEL", "gpt-4")
 
-SYSTEM_PROMPT = """You are a helpful summarization assistant. 
-Given an article title and content (or description), produce:
-1) A concise one-line headline summary.
-2) 4–8 short bullet points (6–18 words each), factual and neutral.
-Return plain text, with the headline first, then bullet points.
+SYSTEM_PROMPT = """You are a helpful summarization assistant.
+Given an article title and content (or description),
+produce a concise, clear summary as 4–8 short bullet points.
+Keep them factual, neutral, each bullet short (6–18 words).
+Also return a one-line headline-style summary.
 """
 
 def summarize_article(title, content, max_tokens=300):
-    if not os.getenv("OPENAI_API_KEY"):
-        raise ValueError("OPENAI_API_KEY not set")
+    """
+    Summarize an article using OpenAI API.
+    Returns a formatted summary string.
+    If summarization fails, returns a friendly placeholder.
+    """
+    if not openai.api_key:
+        return "Summary unavailable: missing OpenAI API key."
 
     prompt = [
         {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": f"Title: {title}\n\nContent: {content}"}
+        {"role": "user", "content": f"Title: {title}\n\nContent: {content}\n\nReturn: 1) A one-line headline summary, 2) 4-8 bullet points. Use plain text."}
     ]
 
     try:
@@ -48,4 +53,5 @@ def summarize_article(title, content, max_tokens=300):
         return headline + "\n" + "\n".join(bullets)
 
     except Exception as e:
-        return f"Error generating summary: {str(e)}"
+        print("Error generating summary:", e)
+        return "Summary unavailable at the moment."
