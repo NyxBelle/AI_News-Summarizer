@@ -1,0 +1,10 @@
+Flask==2.3.2
+gunicorn==20.1.0
+requests==2.31.0
+openai==1.9.1
+APScheduler==3.10.1
+SQLAlchemy==1.4.50
+alembic==1.11.1
+gTTS==2.4.0
+python-dotenv==1.0.1
+Werkzeug==2.2.3
