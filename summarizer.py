@@ -1,57 +1,48 @@
 import os
 from openai import OpenAI
-from textwrap import shorten
+import logging
 
-# Create OpenAI client
+# Logging for Render debug
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-MODEL = os.getenv("OPENAI_MODEL", "gpt-3.5-turbo")
-
-SYSTEM_PROMPT = """You are a helpful summarization assistant.
-Given an article title and content (or description),
-produce a concise, clear summary as 4–8 short bullet points.
-Keep them factual, neutral, each bullet short (6–18 words).
-Also return a one-line headline-style summary.
-"""
-
-def summarize_article(title, content, max_tokens=300):
+def summarize_article(content):
     """
-    Summarize an article using OpenAI API.
-    Returns a formatted summary string.
-    If summarization fails, returns a friendly placeholder.
+    Summarize an article into clear, concise bullet points using GPT models.
+    Falls back to GPT-3.5-turbo if GPT-4o-mini is unavailable.
     """
-    if not openai.api_key:
-        return "Summary unavailable: missing OpenAI API key."
 
-    prompt = [
-        {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": f"Title: {title}\n\nContent: {content}\n\nReturn: 1) A one-line headline summary, 2) 4-8 bullet points. Use plain text."}
+    models_to_try = [
+        os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
+        "gpt-3.5-turbo"
     ]
 
-    try:
-        # Call OpenAI Chat Completions API
-        resp = client.chat.completions.create(
-            model=MODEL,
-            messages=prompt,
-            temperature=0.2,
-            max_tokens=max_tokens
-        )
+    for model in models_to_try:
+        try:
+            logger.info(f"Trying model: {model}")
+            response = client.chat.completions.create(
+                model=model,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are a helpful assistant that summarizes news into 3-5 short bullet points."
+                    },
+                    {
+                        "role": "user",
+                        "content": f"Summarize the following article into bullet points:\n\n{content}"
+                    }
+                ],
+                max_tokens=300,
+                temperature=0.5,
+                timeout=30  # prevents 504 Gateway Timeout on Render
+            )
+            summary = response.choices[0].message.content.strip()
+            return summary
 
-        text = resp.choices[0].message.content.strip()
+        except Exception as e:
+            logger.error(f"Model {model} failed: {e}")
+            continue  # Try the next model
 
-        # Parse: headline = first line, rest = bullet points
-        parts = [line.strip() for line in text.splitlines() if line.strip()]
-        headline = parts[0] if parts else shorten(title, width=80)
-        bullets = [p for p in parts[1:] if p.startswith("-") or p.startswith("•") or p.startswith("*")]
-
-        # Fallback: split by periods if no bullet markers
-        if not bullets and len(parts) > 1:
-            rest = " ".join(parts[1:])
-            cand = [x.strip() for x in rest.split(".") if x.strip()]
-            bullets = ["- " + c for c in cand[:6]]
-
-        return headline + "\n" + "\n".join(bullets)
-
-    except Exception as e:
-        print("Error generating summary:", e)
-        return "Summary unavailable at the moment."
+    return "Error: All models failed to generate a summary."
