@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>History - AI News Summaries</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>History</h1>
+      <a href="/">Home</a>
+    </header>
+
+    <main>
+      {% for item in items %}
+        <article class="card">
+          <h2>{{ item.title }}</h2>
+          <p class="meta">{{ item.source }} • {{ item.published_at }}</p>
+          <pre class="summary">{{ item.summary_text }}</pre>
+          {% if item.audio_filename %}
+            {% set filename = item.audio_filename.split('/')[-1] %}
+            <audio controls>
+              <source src="/static/audio/{{ filename }}" type="audio/mpeg" />
+            </audio>
+          {% endif %}
+          <p><a href="{{ item.url }}" target="_blank" rel="noopener">Read Full Article</a></p>
+        </article>
+      {% endfor %}
+    </main>
+  </div>
+</body>
+</html>
