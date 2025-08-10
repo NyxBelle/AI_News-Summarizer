@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>AI News Summaries</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>AI News Summaries</h1>
+      <form action="/search" method="get">
+        <input name="q" placeholder="Search any topic..." value="{{ search_query or '' }}" />
+        <button type="submit">Search</button>
+      </form>
+      <a href="/history">History</a>
+    </header>
+
+    <main>
+      {% if items %}
+        {% for item in items %}
+          <article class="card">
+            <h2>{{ item.title }}</h2>
+            <p class="meta">{{ item.source }} • {{ item.published_at }}</p>
+            <pre class="summary">{{ item.summary_text }}</pre>
+            {% if item.audio_filename %}
+              {% set filename = item.audio_filename.split('/')[-1] %}
+              <audio controls>
+                <source src="/static/audio/{{ filename }}" type="audio/mpeg" />
+                Your browser does not support the audio element.
+              </audio>
+            {% elif item.audio %}
+              {% set filename = item.audio.split('/')[-1] %}
+              <audio controls>
+                <source src="/static/audio/{{ filename }}" type="audio/mpeg" />
+              </audio>
+            {% endif %}
+            <p><a href="{{ item.url }}" target="_blank" rel="noopener">Read Full Article</a></p>
+          </article>
+        {% endfor %}
+      {% else %}
+        <p>No summaries yet.</p>
+      {% endif %}
+    </main>
+  </div>
+  <script src="/static/script.js"></script>
+</body>
+</html>
